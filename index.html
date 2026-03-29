@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpeakToEdit — Hands-Free Video Editor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo">SpeakTo<span>Edit</span></div>
+  <div class="voice-status">
+    <div class="cmd-display" id="cmdDisplay">Say "start recording"…</div>
+    <div class="mic-orb" id="micOrb" title="Click to toggle mic">🎤</div>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- VIEWPORT -->
+  <div class="viewport" id="viewport">
+    <div class="start-overlay" id="startOverlay">
+      <h2>🎬 SpeakToEdit</h2>
+      <p>Hands-free video editing. Control everything with your voice.<br>Here's what you can say:</p>
+
+      <div class="cmd-grid">
+        <div class="cmd-grid-row"><span class="cmd-grid-kw">start recording</span><span class="cmd-grid-desc">Begin capture</span></div>
+        <div class="cmd-grid-row"><span class="cmd-grid-kw">stop recording</span><span class="cmd-grid-desc">Save clip</span></div>
+        <div class="cmd-grid-row"><span class="cmd-grid-kw">play</span><span class="cmd-grid-desc">Play selected clip</span></div>
+        <div class="cmd-grid-row"><span class="cmd-grid-kw">pause</span><span class="cmd-grid-desc">Pause playback</span></div>
+        <div class="cmd-grid-row"><span class="cmd-grid-kw">cut</span><span class="cmd-grid-desc">Split at playhead</span></div>
+        <div class="cmd-grid-row"><span class="cmd-grid-kw">delete clip</span><span class="cmd-grid-desc">Remove selected</span></div>
+        <div class="cmd-grid-row"><span class="cmd-grid-kw">select clip 1</span><span class="cmd-grid-desc">Pick a clip</span></div>
+        <div class="cmd-grid-row"><span class="cmd-grid-kw">next / previous clip</span><span class="cmd-grid-desc">Navigate clips</span></div>
+        <div class="cmd-grid-row"><span class="cmd-grid-kw">undo</span><span class="cmd-grid-desc">Reverse last action</span></div>
+        <div class="cmd-grid-row"><span class="cmd-grid-kw">add song</span><span class="cmd-grid-desc">Add music to clip</span></div>
+        <div class="cmd-grid-row"><span class="cmd-grid-kw">remove song</span><span class="cmd-grid-desc">Remove music</span></div>
+        <div class="cmd-grid-row"><span class="cmd-grid-kw">export</span><span class="cmd-grid-desc">Download clips</span></div>
+        <div class="cmd-grid-row"><span class="cmd-grid-kw">help</span><span class="cmd-grid-desc">Hear all commands</span></div>
+      </div>
+
+      <button class="big-btn" onclick="initApp()">Allow Camera &amp; Mic</button>
+      <p style="font-size:11px;margin-top:-4px;color:var(--muted)">The app will read the commands aloud when you start.</p>
+    </div>
+
+    <video id="cameraFeed" autoplay muted playsinline></video>
+    <video id="mainVideo" controls style="display:none"></video>
+
+    <div class="face-guide" id="faceGuide"></div>
+    <div class="direction-arrow" id="dirArrow">↑</div>
+    <div class="face-msg" id="faceMsg">Please centre yourself in frame</div>
+    <div class="centred-msg" id="centredMsg">Perfect — you are centred!</div>
+
+    <div class="rec-hud" id="recHud">
+      <div class="rec-dot"></div>
+      <span class="rec-time" id="recTime">00:00</span>
+      <span style="font-size:11px;color:var(--muted);margin-left:4px;">/ 02:00</span>
+    </div>
+
+    <div class="countdown-bar" id="countdownBar"></div>
+    <canvas id="faceCanvas"></canvas>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Clips</div>
+      <div class="clips-list" id="clipsList">
+        <div class="no-clips" id="noClipsMsg">No clips yet.<br>Say "start recording"</div>
+      </div>
+    </div>
+    <div class="sidebar-section" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+      <div class="sidebar-title">Voice Commands</div>
+      <div class="cmds-list">
+        <div class="cmd-row"><span class="cmd-kw">start recording</span><span class="cmd-desc">Begin capturing</span></div>
+        <div class="cmd-row"><span class="cmd-kw">stop recording</span><span class="cmd-desc">End + save clip</span></div>
+        <div class="cmd-row"><span class="cmd-kw">play</span><span class="cmd-desc">Play selected clip</span></div>
+        <div class="cmd-row"><span class="cmd-kw">pause / stop</span><span class="cmd-desc">Pause playback</span></div>
+        <div class="cmd-row"><span class="cmd-kw">cut</span><span class="cmd-desc">Split clip at playhead</span></div>
+        <div class="cmd-row"><span class="cmd-kw">delete clip</span><span class="cmd-desc">Remove selected clip</span></div>
+        <div class="cmd-row"><span class="cmd-kw">select clip [1-9]</span><span class="cmd-desc">Pick a clip</span></div>
+        <div class="cmd-row"><span class="cmd-kw">next clip</span><span class="cmd-desc">Select next clip</span></div>
+        <div class="cmd-row"><span class="cmd-kw">previous clip</span><span class="cmd-desc">Select prev clip</span></div>
+        <div class="cmd-row"><span class="cmd-kw">undo</span><span class="cmd-desc">Undo last action</span></div>
+        <div class="cmd-row"><span class="cmd-kw">add song</span><span class="cmd-desc">Music overlay on clip</span></div>
+        <div class="cmd-row"><span class="cmd-kw">remove song</span><span class="cmd-desc">Remove music from clip</span></div>
+        <div class="cmd-row"><span class="cmd-kw">export</span><span class="cmd-desc">Download all clips</span></div>
+        <div class="cmd-row"><span class="cmd-kw">help</span><span class="cmd-desc">Read commands aloud</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="timeline-area">
+    <div class="timeline-header">
+      <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;color:var(--muted);">TIMELINE</span>
+      <button class="tl-btn primary" onclick="voiceCmd('start recording')">⏺ Record</button>
+      <button class="tl-btn" onclick="voiceCmd('play')">▶ Play</button>
+      <button class="tl-btn" onclick="voiceCmd('pause')">⏸ Pause</button>
+      <button class="tl-btn" onclick="voiceCmd('cut')">✂ Cut</button>
+      <button class="tl-btn danger" onclick="voiceCmd('delete clip')">🗑 Delete</button>
+      <button class="tl-btn" onclick="voiceCmd('undo')">↩ Undo</button>
+      <button class="tl-btn" onclick="exportAll()" style="margin-left:auto">⬇ Export</button>
+    </div>
+    <div class="timeline-track" id="timelineTrack">
+      <div class="playhead" id="playhead"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="speech-toast" id="speechToast"></div>
+
+<!--
+  Script load order matters — each file depends on functions
+  declared in files loaded before it:
+
+  editor.js   → clips[], formatDur()           (no deps)
+  ui.js       → renderClips(), showToast()     (needs editor.js)
+  speech.js   → speak(), speakIntro()          (needs ui.js for showToast)
+  face.js     → startFaceDetection()           (needs speech.js for speakDirection)
+  recorder.js → startRecording()              (needs editor.js, ui.js, speech.js)
+  commands.js → handleCommand(), voiceCmd()   (needs all above)
+  app.js      → initApp()                     (needs all above)
+-->
+<script src="editor.js"></script>
+<script src="ui.js"></script>
+<script src="speech.js"></script>
+<script src="face.js"></script>
+<script src="recorder.js"></script>
+<script src="commands.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
