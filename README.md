@@ -1,5 +1,5 @@
 # 🎥 Accessible Video Recorder for Visually Impaired Creators
-#by SeeSharp under the Category of Visual Impairment
+by SeeSharp under the Category of Visual Impairment
 
 An inclusive web application that enables visually impaired users to independently record and create short-form videos for platforms like TikTok, Instagram Reels, and YouTube Shorts.
 
