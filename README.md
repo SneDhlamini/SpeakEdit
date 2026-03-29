@@ -8,7 +8,7 @@ The system removes the need for visual interaction by relying entirely on voice 
 ---
 ## 🎥 Demo Video
 
-[ Add demo video link here ]
+[![Watch the demo](https://youtu.be/6HM7p8VZyJc?si=zn5G_K0ffaQLtDjv)
 
 ---
 ## 🌟 Key Features
